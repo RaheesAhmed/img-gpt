@@ -12,8 +12,13 @@ app.use(express.json());
 const apiKey = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey });
 
+app.use("/", express.static("public"));
+
 app.post("/generate-images", async (req, res) => {
   const { url, colorCodes } = req.body;
+
+  const data = req.body;
+  console.log(data);
 
   try {
     const htmlContent = await scrapeWebsite(url);

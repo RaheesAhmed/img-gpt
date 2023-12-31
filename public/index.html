@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Generator Form</title>
+    <!-- Bootstrap CSS for styling -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <!-- Custom CSS for loader -->
+    <style>
+      .loader {
+        border: 6px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 6px solid blue;
+        border-right: 6px solid green;
+        border-bottom: 6px solid red;
+        width: 40px;
+        height: 40px;
+        -webkit-animation: spin 2s linear infinite;
+        animation: spin 2s linear infinite;
+        display: none;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 1000;
+      }
+
+      @-webkit-keyframes spin {
+        0% {
+          -webkit-transform: rotate(0deg);
+        }
+        100% {
+          -webkit-transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h2>Image Generator Form</h2>
+      <form id="imageForm">
+        <div class="form-group">
+          <label for="urlInput">URL</label>
+          <input
+            type="text"
+            class="form-control"
+            id="urlInput"
+            placeholder="Enter URL"
+          />
+        </div>
+        <div class="form-group">
+          <label for="colorInput">Color Codes (comma separated)</label>
+          <input
+            type="text"
+            class="form-control"
+            id="colorInput"
+            placeholder="#ff5733, #33ff57, #3357ff"
+          />
+        </div>
+        <button type="button" class="btn btn-primary" onclick="submitForm()">
+          Submit
+        </button>
+        <!-- Loader -->
+        <div class="loader" id="loader"></div>
+      </form>
+      <div id="output" class="mt-4"></div>
+    </div>
+
+    <!-- JavaScript to handle form submission and show/hide loader -->
+    <script>
+      function submitForm() {
+        // Show loader
+        document.getElementById("loader").style.display = "block";
+
+        var url = document.getElementById("urlInput").value;
+        var colorCodes = document
+          .getElementById("colorInput")
+          .value.split(",")
+          .map((s) => s.trim());
+
+        var data = {
+          url: url,
+          colorCodes: colorCodes,
+        };
+
+        fetch("http://localhost:3000/generate-images", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Success:", data);
+            document.getElementById("loader").style.display = "none";
+
+            // Clear existing output
+            var output = document.getElementById("output");
+            output.innerHTML = "";
+
+            // Loop through the images array and display each image
+            data.images.forEach((url) => {
+              var img = document.createElement("img");
+              img.src = url; // Set the image URL
+              img.style.width = "100%";
+              img.style.marginBottom = "20px";
+
+              console.log("Image element created:", img); // Console log for troubleshooting
+
+              output.appendChild(img);
+            });
+
+            console.log("Images appended to output"); // Console log after appending images
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            document.getElementById("loader").style.display = "none";
+          });
+      }
+    </script>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.7.16/umd.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>
