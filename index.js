@@ -14,18 +14,67 @@ const openai = new OpenAI({ apiKey });
 
 app.use("/", express.static("public"));
 
-app.post("/generate-images", async (req, res) => {
-  const { url, colorCodes } = req.body;
+const generateMultipleImages = async (prompt) => {
+  let images = [];
+  for (let i = 0; i < 5; i++) {
+    try {
+      let response = await openai.images.generate({
+        model: "dall-e-3",
+        prompt,
+        n: 1,
+        quality: "standard",
+        size: "1024x1024",
+        response_format: "url",
+      });
 
-  const data = req.body;
-  console.log(data);
+      if (response && response.data && Array.isArray(response.data)) {
+        images.push(response.data.map((image) => image.url)[0]); // Push the first (and only) image URL
+      } else {
+        console.error("Unexpected response structure:", response);
+      }
+    } catch (error) {
+      console.error("Error generating image:", error);
+    }
+  }
+  return images;
+};
+
+const extractColorsAndBrandAttributes = (htmlContent) => {
+  const $ = cheerio.load(htmlContent);
+  let colors = [];
+  let brandAttributes = "";
+
+  // Example: Extracting primary colors from CSS (you can enhance this)
+  $("style").each((_, element) => {
+    let styleContent = $(element).html();
+    let colorMatch = styleContent.match(/#[0-9a-fA-F]{6}/g); // Regex for hex colors
+    if (colorMatch) {
+      colors.push(...colorMatch);
+    }
+  });
+
+  // Example: Extracting brand attributes (you can add more sophisticated analysis)
+  $("meta[name='description']").each((_, element) => {
+    brandAttributes += $(element).attr("content") + " ";
+  });
+
+  console.log("Extracted Colors:", colors);
+  console.log("Extracted Brand Attributes:", brandAttributes);
+
+  return { colors, brandAttributes };
+};
+
+app.post("/generate-images", async (req, res) => {
+  const { url } = req.body;
 
   try {
     const htmlContent = await scrapeWebsite(url);
+    const { colors, brandAttributes } =
+      extractColorsAndBrandAttributes(htmlContent);
     const summarizedContent = extractKeyContent(htmlContent);
-    const prompt = createPrompt(summarizedContent, colorCodes);
-    const images = await generateImages(prompt);
-    res.json({ images });
+    const prompt = createPrompt(summarizedContent, colors);
+    const images = await generateMultipleImages(prompt);
+    res.json({ images, brandAttributes }); // Sending brand attributes for reference
   } catch (error) {
     console.error(`Error: ${error}`);
     res.status(500).send("Error generating images");
