@@ -118,16 +118,15 @@
               img.style.width = "100%";
               img.style.marginBottom = "20px";
 
+              img.onerror = function () {
+                console.error("Error loading image:", url);
+                img.style.display = "none"; // Hide the image element if it fails to load
+              };
+
               console.log("Image element created:", img); // Console log for troubleshooting
 
               output.appendChild(img);
             });
-
-            console.log("Images appended to output"); // Console log after appending images
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            document.getElementById("loader").style.display = "none";
           });
       }
     </script>

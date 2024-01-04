@@ -109,7 +109,7 @@ const createPrompt = (content, colorCodes) => {
       ? content.substring(0, MAX_LENGTH) + "..."
       : content;
 
-  let prompt = `Create an advertisement image based on the following content: ${truncatedContent}`;
+  let prompt = `IMGPT2 is refined to produce exactly five distinct DALLE images from a single input consisting of a website URL and three hex color codes. It will focus solely on generating these images, adhering to the guidelines in IMGPT.txt and using the specified colors, without providing any written analysis. Each image will be unique, reflecting different aspects of the website's content and essence. The output from IMGPT2 will be these five images, each serving as a separate visual representation of the website, together forming a comprehensive visual set.Dont include any text. Create an advertisement image based on the following content: ${truncatedContent}`;
   if (colorCodes && colorCodes.length) {
     prompt += `. Use the following colors: ${colorCodes.join(", ")}`;
   }
